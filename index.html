@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拖拽效果</title>
+    <link rel="stylesheet" href="https://at.alicdn.com/t/c/font_2828069_evf74bpdckf.css">
+    <style>
+        body {
+            background-color: #000;
+        }
+
+        .list {
+            width: 300px;
+            height: 360px;
+            /* padding: 20px 0; */
+            margin: 100px auto 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+
+        .list-item {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            border-radius: 10px;
+            /* margin-bottom: 20px; */
+            background-color: var(--color);
+        }
+
+        .constellation {
+            line-height: 2.5em;
+            font-size: 20px;
+            color: #fff;
+        }
+
+        .list-item-img {
+            width: 30px;
+            height: 30px;
+        }
+
+        .list-item-title {
+            margin-left: 20px;
+            color: #fff;
+        }
+
+        .list-item.moving {
+            background-color: transparent;
+            border: 2px dashed #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- draggable:让盒子可以进行拖拽 -->
+    <div class="list">
+        <div class="list-item" draggable="true" style="--color:#e63e31">
+            <i class="iconfont icon-bingtutubiao constellation"></i>
+            <span class="list-item-title">双鱼座</span>
+        </div>
+        <div class="list-item" draggable="true" style="--color:#70d265">
+            <i class="iconfont icon-bingtutubiao constellation"></i>
+            <span class="list-item-title">水平座</span>
+        </div>
+        <div class="list-item" draggable="true" style="--color:#f0e941">
+            <i class="iconfont icon-bingtutubiao constellation"></i>
+            <span class="list-item-title">摩羯座</span>
+        </div>
+        <div class="list-item" draggable="true" style="--color:#da8218">
+            <i class="iconfont icon-bingtutubiao constellation"></i>
+            <span class="list-item-title">处女座</span>
+        </div>
+        <div class="list-item" draggable="true" style="--color:#7ff0ec">
+            <i class="iconfont icon-bingtutubiao constellation"></i>
+            <span class="list-item-title">狮子座</span>
+        </div>
+    </div>
+    <script>
+        // 操作dom元素
+        const list = document.querySelector('.list')
+        const item = document.querySelectorAll('.list-item')
+
+        // 判断当前元素
+        let source_node
+        // 开始拖动
+        list.ondragstart = e => {
+            // console.log("拖动触发")
+            //选中的元素
+            // console.log(e.target)
+            //e.target返回的是触发事件的对象（元素）
+            source_node = e.target
+            recode(item)
+            setTimeout(() => {
+                //添加新的类名，如已经存在，取消添加
+                e.target.classList.add('moving')
+            }, 0)
+            // 设置拖动效果
+            e.dataTransfer.effectAllowed = 'move'
+
+        }
+        // 拖动在有效目标
+        list.ondragover = e => {
+            // 防止默认情况下允许删除
+            e.preventDefault()
+        }
+        // 拖拽放入有效目标触发
+        list.ondragenter = e => {
+            //这个会拿到两次  第一次是选中的  第二次就是目标  第二次会覆盖  
+            // 
+            //e.preventDefault() 阻止控件的默认事件
+            //这个方法是用来阻止默认事件
+            //比如当你点击带有href值的a标签时,
+            //元素响应click事件后， 还会发生页面跳转。 如果加上这个方法(属性) 后， 浏览器只会响应click事件， 不会发生跳转
+            e.preventDefault()
+            if (e.target === list || e.target === source_node) {
+                return false
+            }
+            const childer = Array.from(list.children)
+            const sourceIndex = childer.indexOf(source_node)
+            const targetIndex = childer.indexOf(e.target)
+            // console.log(childer)
+            // console.log(sourceIndex, targetIndex)
+            if (sourceIndex < targetIndex) {
+                 // 从上往下拖动
+                 //insertBefore已有的节点 * 之前 * 插入新的节点    把选中的元素 插入有效目标的下一个兄弟前
+                //  console.log(e.target)
+                // console.log("kkk",e.target.nextElementSibling)
+                list.insertBefore(source_node, e.target.nextElementSibling)
+                
+            } else {
+                // 从上往下拖动
+                // console.log(e.target, e.target)
+                if (!e.target == null || source_node == null) {
+                    return
+                }
+                 
+                list.insertBefore(source_node, e.target)
+
+            }
+            //动画效果
+            last([e.target, source_node])
+        }
+        // 拖放结束
+        list.ondragend = e => {
+            console.log("结束",e.target)
+            e.target.classList.remove('moving')
+        }
+        // 重新计算位置
+        function recode(eleAll) {
+            // getBoundingClientRect 返回元素对于视口信息
+            for (let i = 0; i < eleAll.length; i++) {
+                const {
+                    top,
+                    left
+                } = eleAll[i].getBoundingClientRect()
+                console.log(eleAll[i].getBoundingClientRect())
+                eleAll[i]._top = top
+                eleAll[i]._left = left
+            }
+        }
+        // 添加移动动画效果
+        function last(eleAll) {
+            for (let i = 0; i < eleAll.length; i++) {
+                const dom = eleAll[i]
+                const {
+                    top,
+                    left
+                } = dom.getBoundingClientRect()
+                if (dom._left) {
+                    dom.style.transform = `translate3d(${dom._left-left}px,${dom._top-top}px,0px)`
+                    // 重绘动画
+                    let rafId = requestAnimationFrame(function () {
+                        dom.style.transition = `transform 0.3s ease-out`
+                        dom.style.transform = 'none'
+                    })
+                    dom.addEventListener('transitionend', () => {
+                        // transitionend 该事件在 CSS 完成过渡后触发。
+                        dom.style.transition = 'none'
+                        // 取消requestAnimationFrame调用请求  用来清除动画
+                        cancelAnimationFrame(rafId)
+                    })
+                }
+            }
+        }
+    </script>
+
+</body>
+
+</html>
